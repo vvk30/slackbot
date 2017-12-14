@@ -63,6 +63,9 @@ if (!process.env.clientId || !process.env.clientSecret || !process.env.PORT) {
 var Botkit = require('botkit');
 var debug = require('debug')('botkit:main');
 
+//import botkit-rasa 
+var rasa = require('botkit-rasa')({rasa_uri: 'http://35.193.107.90:5000', rasa_project: 'default'}); 
+
 var bot_options = {
     clientId: process.env.clientId,
     clientSecret: process.env.clientSecret,
@@ -83,6 +86,16 @@ if (process.env.MONGO_URI) {
 
 // Create the Botkit controller, which controls all instances of the bot.
 var controller = Botkit.slackbot(bot_options);
+
+
+// use rasa as middleware 
+controller.middleware.receive.use(rasa.receive);//remove
+
+//change ears for using rasa as middleware
+// controller.changeEars(function (patterns, message) {
+//   return rasa.hears(patterns, message);
+// })
+
 
 controller.startTicking();
 
@@ -131,7 +144,7 @@ if (!process.env.clientId || !process.env.clientSecret) {
 
   var normalizedPath = require("path").join(__dirname, "skills");
   require("fs").readdirSync(normalizedPath).forEach(function(file) {
-    require("./skills/" + file)(controller);
+    require("./skills/" + file)(controller,rasa);
   });
 
   // This captures and evaluates any message sent to the bot as a DM
@@ -165,10 +178,6 @@ if (!process.env.clientId || !process.env.clientSecret) {
       console.log('To enable, pass in a studio_token parameter with a token from https://studio.botkit.ai/');
   }
 }
-
-
-
-
 
 function usage_tip() {
     console.log('~~~~~~~~~~');
