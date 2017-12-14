@@ -25,13 +25,35 @@ module.exports = function(controller) {
             bot.replyInteractive(message, reply);
   
          }
-        if(message.actions[0].name.match(/^yes$/)){
-           bot.reply(message,"Yesssss1")
-        }
       }
       
       next();    
       
     });
+  
+  //dont require this - since it not required.
+  controller.on('interactive_message_callback', function(bot, message) {
+    
+    // These 3 lines are used to parse out the id's
+    var ids = message.callback_id.split(/\-/);
+    var user_id = ids[0];
+    var item_id = ids[1];
+
+    var callbackId = message.callback_id;
+    
+    // Example use of Select case method for evaluating the callback ID
+    // Callback ID 123 for weather bot webcam
+    switch(callbackId) {
+    case "123":
+        //bot.replyInteractive(message, "Button works!");
+        bot.reply(message, "Button hit");
+        break;
+    // Add more cases here to handle for multiple buttons    
+    default:
+        // For debugging
+        bot.reply(message, 'The callback ID has not been defined');
+    }
+});
+
 
 }
