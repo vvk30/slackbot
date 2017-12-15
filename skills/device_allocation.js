@@ -44,6 +44,7 @@ controller.hears(['device_request'], 'direct_message,direct_mention,mention',ras
       var ticket_description = convo.extractResponse('ticket_description');
       convo.setVar('employee_id', employee_id);
       convo.setVar('ticket_description', ticket_description);
+      
       next();
     });
 
@@ -102,17 +103,14 @@ controller.hears(['device_request'], 'direct_message,direct_mention,mention',ras
     /*
     {
       "_id": {
-          "$oid": "5a32a49507faed7a5465521a"
       },
       "id": "T7T7WKK3L",
       "createdBy": "U8DQ6PRCH",
       "url": "https://botcreationworkspace.slack.com/",
       "name": "BotCreation",
       "bot": {
-          "token": "xoxb-286119328611-7Tj7A3iTNgrepb3P6nXYMHwJ",
           "user_id": "U8E3H9NHZ",
           "createdBy": "U8DQ6PRCH",
-          "app_token": "xoxp-265268665122-285822807425-286174532912-3787fce6d41d7948fad9e66d913f70bf",
           "name": "newbot"
       }
     }
@@ -126,67 +124,114 @@ controller.hears(['device_request'], 'direct_message,direct_mention,mention',ras
             if(convo.status == 'completed'){
               //completed status indicates success.
              bot.reply(message," ticket raising process completed.")
-            
+            //direct message ---------------- Api call here =  ticket/create
+              var employee_id = convo.extractResponse('employee_id');
+              var ticket_description = convo.extractResponse('ticket_description');
              bot.api.im.open({
-        user: 'U8DQ6PRCH'
-    }, (err, res) => {
-        if (err) {
-            bot.botkit.log('Failed to open IM with user', err)
-        }
-        console.log(res);
-        bot.startConversation({
-            user: 'U8DQ6PRCH',
-            channel: res.channel.id,
-            text: 'WOWZA... 1....2'
-        }, (err, convo) => {
-            convo.addQuestion(
-      {attachments:[
-            {
-                title: 'Do you want to proceed?',
-                callback_id: '124',
-                attachment_type: 'default',
-                actions: [
-                    {
-                        "name":"say",
-                        "text": "Yes",
-                        "value": "yes",
-                        "type": "button",
-                    },
-                    {
-                        "name":"say",
-                        "text": "No",
-                        "value": "no",
-                        "type": "button",
-                    }
-                ]
-            }
-        ]},
-      [
-        {
-            pattern: "yes",
-            callback: function(reply, convo) {
-                convo.say('We\'re raising your ticket. Hang tight!');  
-                convo.say("Ticket has been raised");
-                convo.next();
-                // do something awesome here.
-            }
-        },
-        {
-            pattern: "no",
-            callback: function(reply, convo) {
-                convo.say('Too bad');
-                convo.stop();
-            }
-        },
-        {
-            default: true,
-            callback: function(reply, convo) {
-                // do nothing
-            }
-        }
-    ],{},'default');
-        });
-    })
+                user: 'U7T5M6L3V'//send manager for ticket approval
+              }, (err, res) => {
+                  if (err) {
+                      bot.botkit.log('Failed to open IM with user', err)
+                  }
+                  console.log(res);
+                  bot.startConversation({
+                      user: 'U7T5M6L3V',//manager in context
+                      channel: res.channel.id,
+                      text: 'WOWZA... 1....2'
+                  }, (err, convo1) => {
+                      convo1.addQuestion(
+                {attachments:[
+                      {
+                          title: 'Ticket',
+                          text:'Employee id: '+employee_id+'\n'+ticket_description+'\n'+'Do you want to approve this request?',
+                          color: "#36a64f",
+                          callback_id: '124',
+                          attachment_type: 'default',
+                          actions: [
+                              {
+                                  "name":"say",
+                                  "text": "Approve",
+                                  "value": "yes",
+                                  "type": "button",
+                              },
+                              {
+                                  "name":"say",
+                                  "text": "Reject",
+                                  "value": "no",
+                                  "type": "button",
+                              }
+                          ]
+                      }
+                  ]},
+                [
+                  {
+                      pattern: "yes",
+                      callback: function(reply, convo1) {
+                          convo1.say('Ticket approved');
+                          convo1.next();
+                          // do something awesome here.
+                      }
+                  },
+                  {
+                      pattern: "no",
+                      callback: function(reply, convo1) {
+                          convo1.say('Reason for rejecting the ticket?');
+                          convo1.stop();
+                      }
+                  },
+                  {
+                      default: true,
+                      callback: function(reply, convo) {
+                          // do nothing
+                      }
+                  }
+              ],{},'default');
+                    
+                    
+             convo1.on('end', function(convo1) {
+           if (convo1.status == 'stopped') {
+             //stopped status indicates ticket raise failed.
+             bot.reply(message,"Your ticket has been rejected");
+             // bot.api.im.open({
+             //    user: 'U8DQ6PRCH'
+             //  }, (err, res) => {
+             //      if (err) {
+             //          bot.botkit.log('Failed to open IM with user', err)
+             //      }
+             //      console.log(res);
+             //      bot.startConversation({
+             //          user: 'U8DQ6PRCH',
+             //          channel: res.channel.id,
+             //          text: 'WOWZA... 1....2'
+             //       }), (err, convo2) => {
+             //        convo2.say("Your ticket has been rejected");
+             //      }
+             //   });     
+             
+           }
+             if(convo1.status == 'completed'){
+           //    //completed status indicates success.
+             bot.reply(message,"Your ticket has been approved")
+           //  //direct message ---------------- Api call here =  ticket/create
+             // bot.api.im.open({
+             //    user: 'U8DQ6PRCH'
+             //  }, (err, res) => {
+             //      if (err) {
+             //          bot.botkit.log('Failed to open IM with user', err)
+             //      }
+             //      console.log(res);
+             //      bot.startConversation({
+             //          user: 'U8DQ6PRCH',
+             //          channel: res.channel.id,
+             //          text: 'WOWZA... 1....2'
+             //       }), (err, convo2) => {
+             //        convo2.say("Your ticket has been approved");
+             //      }
+             //   });                    
+             }
+                  });
+                  });
+              })
            }      
     });
 });
@@ -218,3 +263,4 @@ controller.hears(['device_request'], 'direct_message,direct_mention,mention',ras
 });
 */
 }
+
